@@ -153,17 +153,23 @@ public class ParamNameResolver {
    * @since 3.5.5
    */
   public static Object wrapToMapIfCollection(Object object, String actualParamName) {
+    //这里设置了默认的参数名称，所以没用@Param指定参数名时，也可以使用默认的参数名进行引用。
+    //如果是集合类型的，默认参数名是collection
     if (object instanceof Collection) {
       ParamMap<Object> map = new ParamMap<>();
       map.put("collection", object);
       if (object instanceof List) {
+        //如果是List类型的，list
         map.put("list", object);
       }
+      //设置指定的参数名
       Optional.ofNullable(actualParamName).ifPresent(name -> map.put(name, object));
       return map;
     } else if (object != null && object.getClass().isArray()) {
+      //如果是数组类型，默认的参数名是array
       ParamMap<Object> map = new ParamMap<>();
       map.put("array", object);
+      //设置指定的参数名
       Optional.ofNullable(actualParamName).ifPresent(name -> map.put(name, object));
       return map;
     }

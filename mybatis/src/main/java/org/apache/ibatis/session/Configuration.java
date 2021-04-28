@@ -125,7 +125,12 @@ public class Configuration {
   protected Integer defaultStatementTimeout;
   protected Integer defaultFetchSize;
   protected ResultSetType defaultResultSetType;
+
+  /**
+   * 默认的执行器类型：Simple
+   */
   protected ExecutorType defaultExecutorType = ExecutorType.SIMPLE;
+
   protected AutoMappingBehavior autoMappingBehavior = AutoMappingBehavior.PARTIAL;
   protected AutoMappingUnknownColumnBehavior autoMappingUnknownColumnBehavior = AutoMappingUnknownColumnBehavior.NONE;
 
@@ -147,7 +152,13 @@ public class Configuration {
   protected Class<?> configurationFactory;
 
   protected final MapperRegistry mapperRegistry = new MapperRegistry(this);
+
+  /**
+   * 插件的拦截器
+   */
   protected final InterceptorChain interceptorChain = new InterceptorChain();
+
+
   protected final TypeHandlerRegistry typeHandlerRegistry = new TypeHandlerRegistry(this);
   protected final TypeAliasRegistry typeAliasRegistry = new TypeAliasRegistry();
   protected final LanguageDriverRegistry languageRegistry = new LanguageDriverRegistry();
@@ -664,6 +675,12 @@ public class Configuration {
     return newExecutor(transaction, defaultExecutorType);
   }
 
+  /**
+   * 根据指定的执行器类型和事务信息，创建对应的执行器
+   * @param transaction
+   * @param executorType
+   * @return
+   */
   public Executor newExecutor(Transaction transaction, ExecutorType executorType) {
     executorType = executorType == null ? defaultExecutorType : executorType;
     executorType = executorType == null ? ExecutorType.SIMPLE : executorType;
@@ -676,8 +693,10 @@ public class Configuration {
       executor = new SimpleExecutor(this, transaction);
     }
     if (cacheEnabled) {
+      //使用缓存执行器来包装
       executor = new CachingExecutor(executor);
     }
+    //使用插件的拦截器
     executor = (Executor) interceptorChain.pluginAll(executor);
     return executor;
   }

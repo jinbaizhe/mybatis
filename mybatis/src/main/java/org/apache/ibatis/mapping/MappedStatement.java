@@ -302,9 +302,13 @@ public final class MappedStatement {
   }
 
   public BoundSql getBoundSql(Object parameterObject) {
+    //封装要执行的SQL和参数
     BoundSql boundSql = sqlSource.getBoundSql(parameterObject);
+
+    //获取参数类型映射信息
     List<ParameterMapping> parameterMappings = boundSql.getParameterMappings();
     if (parameterMappings == null || parameterMappings.isEmpty()) {
+      //TODO 2021/4/28 参数类型映射信息为空时，使用
       boundSql = new BoundSql(configuration, boundSql.getSql(), parameterMap.getParameterMappings(), parameterObject);
     }
 

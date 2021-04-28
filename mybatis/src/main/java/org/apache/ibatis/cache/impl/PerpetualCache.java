@@ -22,12 +22,17 @@ import org.apache.ibatis.cache.Cache;
 import org.apache.ibatis.cache.CacheException;
 
 /**
+ * 最基础的缓存类,本质上就是对HashMap进行封装
+ * 可在该类上做扩展，比如增加缓存的过期策略等
  * @author Clinton Begin
  */
 public class PerpetualCache implements Cache {
 
   private final String id;
 
+  /**
+   * 用HashMap来存储
+   */
   private final Map<Object, Object> cache = new HashMap<>();
 
   public PerpetualCache(String id) {

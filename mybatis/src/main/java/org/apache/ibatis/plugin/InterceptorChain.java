@@ -28,6 +28,7 @@ public class InterceptorChain {
 
   public Object pluginAll(Object target) {
     for (Interceptor interceptor : interceptors) {
+      //实际上还是用JDK的动态代理实现的
       target = interceptor.plugin(target);
     }
     return target;

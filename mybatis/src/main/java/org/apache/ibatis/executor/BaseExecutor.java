@@ -45,18 +45,36 @@ import org.apache.ibatis.transaction.Transaction;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 
 /**
+ * 执行器的抽象类
  * @author Clinton Begin
  */
 public abstract class BaseExecutor implements Executor {
 
   private static final Log log = LogFactory.getLog(BaseExecutor.class);
 
+  /**
+   * 事务
+   */
   protected Transaction transaction;
+
+  /**
+   * 执行器包装者
+   */
   protected Executor wrapper;
 
   protected ConcurrentLinkedQueue<DeferredLoad> deferredLoads;
+
+  /**
+   * 缓存，这里实际上就是一级缓存
+   */
   protected PerpetualCache localCache;
+
+
   protected PerpetualCache localOutputParameterCache;
+
+  /**
+   * 配置信息
+   */
   protected Configuration configuration;
 
   protected int queryStack;
@@ -143,6 +161,8 @@ public abstract class BaseExecutor implements Executor {
     if (closed) {
       throw new ExecutorException("Executor was closed.");
     }
+
+    //判断是否需要清空一级缓存
     if (queryStack == 0 && ms.isFlushCacheRequired()) {
       clearLocalCache();
     }
@@ -153,6 +173,7 @@ public abstract class BaseExecutor implements Executor {
       if (list != null) {
         handleLocallyCachedOutputParameters(ms, key, parameter, boundSql);
       } else {
+        //一级缓存中查不到，查询DB
         list = queryFromDatabase(ms, parameter, rowBounds, resultHandler, key, boundSql);
       }
     } finally {
@@ -301,6 +322,13 @@ public abstract class BaseExecutor implements Executor {
     StatementUtil.applyTransactionTimeout(statement, statement.getQueryTimeout(), transaction.getTimeout());
   }
 
+  /**
+   *
+   * @param ms
+   * @param key
+   * @param parameter
+   * @param boundSql
+   */
   private void handleLocallyCachedOutputParameters(MappedStatement ms, CacheKey key, Object parameter, BoundSql boundSql) {
     if (ms.getStatementType() == StatementType.CALLABLE) {
       final Object cachedParameter = localOutputParameterCache.getObject(key);
@@ -320,12 +348,15 @@ public abstract class BaseExecutor implements Executor {
 
   private <E> List<E> queryFromDatabase(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, CacheKey key, BoundSql boundSql) throws SQLException {
     List<E> list;
+    //向缓存中保存占位符
     localCache.putObject(key, EXECUTION_PLACEHOLDER);
     try {
       list = doQuery(ms, parameter, rowBounds, resultHandler, boundSql);
     } finally {
+      //移除缓存中的占位符
       localCache.removeObject(key);
     }
+    //向缓存中保存查询结果
     localCache.putObject(key, list);
     if (ms.getStatementType() == StatementType.CALLABLE) {
       localOutputParameterCache.putObject(key, parameter);
@@ -342,6 +373,10 @@ public abstract class BaseExecutor implements Executor {
     }
   }
 
+  /**
+   * 设置包装类的引用
+   * @param wrapper
+   */
   @Override
   public void setExecutorWrapper(Executor wrapper) {
     this.wrapper = wrapper;

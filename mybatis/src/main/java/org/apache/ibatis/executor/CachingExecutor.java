@@ -33,11 +33,15 @@ import org.apache.ibatis.session.RowBounds;
 import org.apache.ibatis.transaction.Transaction;
 
 /**
+ * 缓存执行器
  * @author Clinton Begin
  * @author Eduardo Macarron
  */
 public class CachingExecutor implements Executor {
 
+  /**
+   * 被委托的对象
+   */
   private final Executor delegate;
   private final TransactionalCacheManager tcm = new TransactionalCacheManager();
 
@@ -92,20 +96,26 @@ public class CachingExecutor implements Executor {
   @Override
   public <E> List<E> query(MappedStatement ms, Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler, CacheKey key, BoundSql boundSql)
       throws SQLException {
+    //二级缓存
     Cache cache = ms.getCache();
     if (cache != null) {
+      //查询缓存前判断是否要失效掉原有的缓存
       flushCacheIfRequired(ms);
       if (ms.isUseCache() && resultHandler == null) {
         ensureNoOutParams(ms, boundSql);
         @SuppressWarnings("unchecked")
         List<E> list = (List<E>) tcm.getObject(cache, key);
         if (list == null) {
+          //查不到缓存时，最终还是通过委托来查询DB获得结果
           list = delegate.query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
+          //查询结果放入缓存
           tcm.putObject(cache, key, list); // issue #578 and #116
         }
         return list;
       }
     }
+
+    //没有配置缓存时，通过委托来查询DB获得结果
     return delegate.query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
   }
 

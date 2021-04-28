@@ -16,8 +16,24 @@
 package org.apache.ibatis.session;
 
 /**
+ * 执行器类型
  * @author Clinton Begin
  */
 public enum ExecutorType {
-  SIMPLE, REUSE, BATCH
+
+  /**
+   * 默认的执行器，对每条SQL进行预处理（预编译）、填充参数、执行等操作。
+   * @see Configuration#defaultExecutorType
+   */
+  SIMPLE,
+
+  /**
+   * 重用预处理语句：如果这条SQL之前已经被编译过了，本次就不再编译，直接取出去填充参数。
+   */
+  REUSE,
+
+  /**
+   * 批量处理：对相同的SQL只执行一次预编译，并且在最后会统一去执行SQL。
+   */
+  BATCH
 }

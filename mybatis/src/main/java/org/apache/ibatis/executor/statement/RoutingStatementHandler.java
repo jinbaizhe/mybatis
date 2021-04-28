@@ -30,6 +30,8 @@ import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
 
 /**
+ * 对StatementHandler的封装
+ * 可以通过入参类型指定使用对应类型的StatementHandler
  * @author Clinton Begin
  */
 public class RoutingStatementHandler implements StatementHandler {
