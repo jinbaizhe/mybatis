@@ -150,7 +150,9 @@ public abstract class BaseExecutor implements Executor {
   @Override
   public <E> List<E> query(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler) throws SQLException {
     BoundSql boundSql = ms.getBoundSql(parameter);
+    //创建缓存Key
     CacheKey key = createCacheKey(ms, parameter, rowBounds, boundSql);
+    //查询
     return query(ms, parameter, rowBounds, resultHandler, key, boundSql);
   }
 
@@ -364,6 +366,12 @@ public abstract class BaseExecutor implements Executor {
     return list;
   }
 
+  /**
+   * 获取连接
+   * @param statementLog
+   * @return
+   * @throws SQLException
+   */
   protected Connection getConnection(Log statementLog) throws SQLException {
     Connection connection = transaction.getConnection();
     if (statementLog.isDebugEnabled()) {

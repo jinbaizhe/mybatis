@@ -413,10 +413,16 @@ public class PooledDataSource implements DataSource {
 
   private PooledConnection popConnection(String username, String password) throws SQLException {
     boolean countedWait = false;
+
+    //连接
     PooledConnection conn = null;
+
     long t = System.currentTimeMillis();
+
+    //统计为了获取连接，已经尝试了几次
     int localBadConnectionCount = 0;
 
+    //循环去获取连接
     while (conn == null) {
       synchronized (state) {
         //当存在空闲连接时
@@ -510,14 +516,18 @@ public class PooledDataSource implements DataSource {
           // ping to server and check the connection is valid or not
           //尝试ping一下数据库服务器，判断连接是否正常
           if (conn.isValid()) {
+
+            //该连接不是自动提交的，就先回滚上一个事务
             if (!conn.getRealConnection().getAutoCommit()) {
               conn.getRealConnection().rollback();
             }
+
+            //拼接数据库连接地址、账号、密码成字符串，最后再取hashCode
             conn.setConnectionTypeCode(assembleConnectionTypeCode(dataSource.getUrl(), username, password));
             conn.setCheckoutTimestamp(System.currentTimeMillis());
             conn.setLastUsedTimestamp(System.currentTimeMillis());
 
-            //把连接添加到活跃连接列表中
+            //把该连接添加到活跃连接列表中
             state.activeConnections.add(conn);
             state.requestCount++;
 
@@ -528,9 +538,19 @@ public class PooledDataSource implements DataSource {
             if (log.isDebugEnabled()) {
               log.debug("A bad connection (" + conn.getRealHashCode() + ") was returned from the pool, getting another connection.");
             }
+
+            //统计坏连接信息
             state.badConnectionCount++;
+
+            //统计为了获取连接，已经尝试了几次
             localBadConnectionCount++;
+
+            //尝试通过下一次循环遍历去获取
             conn = null;
+
+            //如果重新尝试获取连接的次数，
+            //大于 poolMaximumIdleConnections + poolMaximumLocalBadConnectionTolerance之和，
+            //则抛出"获取不到连接"的异常
             if (localBadConnectionCount > (poolMaximumIdleConnections + poolMaximumLocalBadConnectionTolerance)) {
               if (log.isDebugEnabled()) {
                 log.debug("PooledDataSource: Could not get a good connection to the database.");
