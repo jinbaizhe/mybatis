@@ -22,10 +22,12 @@ import org.apache.ibatis.cache.decorators.TransactionalCache;
 import org.apache.ibatis.util.MapUtil;
 
 /**
+ * 管理二级缓存的类
  * @author Clinton Begin
  */
 public class TransactionalCacheManager {
 
+  //用来保存要提交到二级缓存的事务缓存数据（但还没真正提交到二级缓存中）
   private final Map<Cache, TransactionalCache> transactionalCaches = new HashMap<>();
 
   public void clear(Cache cache) {

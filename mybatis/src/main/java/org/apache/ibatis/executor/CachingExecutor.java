@@ -33,16 +33,17 @@ import org.apache.ibatis.session.RowBounds;
 import org.apache.ibatis.transaction.Transaction;
 
 /**
- * 缓存执行器
+ * 缓存执行器（二级缓存）
  * @author Clinton Begin
  * @author Eduardo Macarron
  */
 public class CachingExecutor implements Executor {
 
   /**
-   * 被委托的对象
+   * 被委托的对象：BaseExecutor、BatchExecutor、ReuseExecutor
    */
   private final Executor delegate;
+
   private final TransactionalCacheManager tcm = new TransactionalCacheManager();
 
   public CachingExecutor(Executor delegate) {
@@ -88,8 +89,14 @@ public class CachingExecutor implements Executor {
 
   @Override
   public <E> List<E> query(MappedStatement ms, Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler) throws SQLException {
+
+    //
     BoundSql boundSql = ms.getBoundSql(parameterObject);
+
+    //创建缓存key
     CacheKey key = createCacheKey(ms, parameterObject, rowBounds, boundSql);
+
+    //执行查询
     return query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
   }
 
@@ -99,15 +106,23 @@ public class CachingExecutor implements Executor {
     //二级缓存
     Cache cache = ms.getCache();
     if (cache != null) {
+
       //查询缓存前判断是否要失效掉原有的缓存
       flushCacheIfRequired(ms);
+
       if (ms.isUseCache() && resultHandler == null) {
+
+        //当使用存储过程时，只支持输入模式下使用二级缓存
         ensureNoOutParams(ms, boundSql);
+
+        //查询二级缓存
         @SuppressWarnings("unchecked")
         List<E> list = (List<E>) tcm.getObject(cache, key);
+
         if (list == null) {
           //查不到缓存时，最终还是通过委托来查询DB获得结果
           list = delegate.query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
+
           //查询结果放入缓存
           tcm.putObject(cache, key, list); // issue #578 and #116
         }
@@ -141,6 +156,11 @@ public class CachingExecutor implements Executor {
     }
   }
 
+  /**
+   * 当使用存储过程时，只支持输入模式下使用二级缓存，其它模式时就会抛异常
+   * @param ms
+   * @param boundSql
+   */
   private void ensureNoOutParams(MappedStatement ms, BoundSql boundSql) {
     if (ms.getStatementType() == StatementType.CALLABLE) {
       for (ParameterMapping parameterMapping : boundSql.getParameterMappings()) {

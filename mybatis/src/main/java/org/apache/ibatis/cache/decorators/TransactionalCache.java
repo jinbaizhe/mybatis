@@ -25,6 +25,8 @@ import org.apache.ibatis.logging.Log;
 import org.apache.ibatis.logging.LogFactory;
 
 /**
+ * 用来保存二级缓存的事务缓存数据
+ * 只有在事务提交的时候，才会真正保存到二级缓存中，为了防止脏读的出现
  * The 2nd level cache transactional buffer.
  * <p>
  * This class holds all cache entries that are to be added to the 2nd level cache during a Session.
@@ -39,9 +41,22 @@ public class TransactionalCache implements Cache {
 
   private static final Log log = LogFactory.getLog(TransactionalCache.class);
 
+  /**
+   * 真正的二级缓存对象
+   */
   private final Cache delegate;
+
+
   private boolean clearOnCommit;
+
+  /**
+   * 待提交到二级缓存的事务缓存
+   */
   private final Map<Object, Object> entriesToAddOnCommit;
+
+  /**
+   * 记录缓存未命中的CacheKey对象
+   */
   private final Set<Object> entriesMissedInCache;
 
   public TransactionalCache(Cache delegate) {
@@ -64,7 +79,10 @@ public class TransactionalCache implements Cache {
   @Override
   public Object getObject(Object key) {
     // issue #116
+    //从二级缓存中取出缓存
     Object object = delegate.getObject(key);
+
+    //如果缓存不存在，就记录这个key查询未命中
     if (object == null) {
       entriesMissedInCache.add(key);
     }
@@ -76,6 +94,13 @@ public class TransactionalCache implements Cache {
     }
   }
 
+  /**
+   *
+   * 保存要待提交到二级缓存的事务缓存
+   * @param key
+   *          Can be any object but usually it is a {@link CacheKey}
+   * @param object
+   */
   @Override
   public void putObject(Object key, Object object) {
     entriesToAddOnCommit.put(key, object);
@@ -105,16 +130,24 @@ public class TransactionalCache implements Cache {
     reset();
   }
 
+  /**
+   * 清空要保存到二级缓存的事务缓存
+   */
   private void reset() {
     clearOnCommit = false;
     entriesToAddOnCommit.clear();
     entriesMissedInCache.clear();
   }
 
+  /**
+   * 事务缓存保存到二级缓存中
+   */
   private void flushPendingEntries() {
     for (Map.Entry<Object, Object> entry : entriesToAddOnCommit.entrySet()) {
       delegate.putObject(entry.getKey(), entry.getValue());
     }
+
+    //TODO 2021/4/30 没看懂
     for (Object entry : entriesMissedInCache) {
       if (!entriesToAddOnCommit.containsKey(entry)) {
         delegate.putObject(entry, null);

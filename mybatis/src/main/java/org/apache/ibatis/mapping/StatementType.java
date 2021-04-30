@@ -21,17 +21,19 @@ package org.apache.ibatis.mapping;
 public enum StatementType {
 
   /**
-   *
+   * 直接操作SQL，不进行预编译
+   * Statement
    */
   STATEMENT,
 
   /**
-   *
+   * 进行预处理。
+   * PreparedStatement
    */
   PREPARED,
 
   /**
-   *
+   * 执行存储过程
    */
   CALLABLE
 }
