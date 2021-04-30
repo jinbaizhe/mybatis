@@ -25,19 +25,37 @@ import org.apache.ibatis.reflection.MetaObject;
 import org.apache.ibatis.reflection.SystemMetaObject;
 
 /**
+ * 非池化数据源工厂类
  * @author Clinton Begin
  */
 public class UnpooledDataSourceFactory implements DataSourceFactory {
 
+  /**
+   * 驱动名前缀
+   */
   private static final String DRIVER_PROPERTY_PREFIX = "driver.";
+
+  /**
+   * 驱动名前缀的长度
+   */
   private static final int DRIVER_PROPERTY_PREFIX_LENGTH = DRIVER_PROPERTY_PREFIX.length();
 
+  /**
+   * 真正的数据源对象
+   */
   protected DataSource dataSource;
 
+  /**
+   * 工厂类实例化时，直接创建一个非池化的数据源
+   */
   public UnpooledDataSourceFactory() {
     this.dataSource = new UnpooledDataSource();
   }
 
+  /**
+   * 设置数据源配置信息
+   * @param properties
+   */
   @Override
   public void setProperties(Properties properties) {
     Properties driverProperties = new Properties();

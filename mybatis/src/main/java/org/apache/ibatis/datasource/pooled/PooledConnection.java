@@ -24,6 +24,7 @@ import java.sql.SQLException;
 import org.apache.ibatis.reflection.ExceptionUtil;
 
 /**
+ * 池化的连接对象
  * @author Clinton Begin
  */
 class PooledConnection implements InvocationHandler {
@@ -32,13 +33,45 @@ class PooledConnection implements InvocationHandler {
   private static final Class<?>[] IFACES = new Class<?>[] { Connection.class };
 
   private final int hashCode;
+
+  /**
+   * 池化的数据源对象
+   */
   private final PooledDataSource dataSource;
+
+  /**
+   * 真正的连接对象
+   */
   private final Connection realConnection;
+
+  /**
+   * 代理的连接对象
+   */
   private final Connection proxyConnection;
+
+  /**
+   * 连接被使用的时间
+   */
   private long checkoutTimestamp;
+
+  /**
+   * 连接创建时间
+   */
   private long createdTimestamp;
+
+  /**
+   * 上次被使用的时间
+   */
   private long lastUsedTimestamp;
+
+  /**
+   *
+   */
   private int connectionTypeCode;
+
+  /**
+   * 连接是否是有效的
+   */
   private boolean valid;
 
   /**
@@ -61,6 +94,7 @@ class PooledConnection implements InvocationHandler {
 
   /**
    * Invalidates the connection.
+   * 设置连接为失效连接
    */
   public void invalidate() {
     valid = false;
@@ -69,9 +103,11 @@ class PooledConnection implements InvocationHandler {
   /**
    * Method to see if the connection is usable.
    *
+   * 判断连接是否有效
    * @return True if the connection is usable
    */
   public boolean isValid() {
+    //连接的状态有效，且真实连接存在，且ping命令执行成功
     return valid && realConnection != null && dataSource.pingConnection(this);
   }
 
@@ -242,11 +278,16 @@ class PooledConnection implements InvocationHandler {
   @Override
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
     String methodName = method.getName();
+
+    //如果是关闭连接的操作，这里实际上是将连接归还给连接池
     if (CLOSE.equals(methodName)) {
       dataSource.pushConnection(this);
       return null;
     }
+
+    //去调用真正的连接对象
     try {
+      //如果调用的方法不是PooledConnection自己声明的方法，就先检查一下当前连接的属性是否是有效的
       if (!Object.class.equals(method.getDeclaringClass())) {
         // issue #579 toString() should never fail
         // throw an SQLException instead of a Runtime
