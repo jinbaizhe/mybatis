@@ -60,10 +60,20 @@ public class UnknownTypeHandler extends BaseTypeHandler<Object> {
     this.typeHandlerRegistrySupplier = () -> typeHandlerRegistry;
   }
 
+  /**
+   * 设置SQL参数
+   * @param ps
+   * @param i
+   * @param parameter
+   * @param jdbcType
+   * @throws SQLException
+   */
   @Override
   public void setNonNullParameter(PreparedStatement ps, int i, Object parameter, JdbcType jdbcType)
       throws SQLException {
+    //根据参数类型和要转换成的JDBC类型，获得对应的类型处理器
     TypeHandler handler = resolveTypeHandler(parameter, jdbcType);
+    //通过类型处理器设置SQL参数
     handler.setParameter(ps, i, parameter, jdbcType);
   }
 

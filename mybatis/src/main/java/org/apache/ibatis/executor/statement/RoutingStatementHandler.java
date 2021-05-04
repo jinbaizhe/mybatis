@@ -61,6 +61,11 @@ public class RoutingStatementHandler implements StatementHandler {
     return delegate.prepare(connection, transactionTimeout);
   }
 
+  /**
+   * 设置SQL参数信息
+   * @param statement
+   * @throws SQLException
+   */
   @Override
   public void parameterize(Statement statement) throws SQLException {
     delegate.parameterize(statement);

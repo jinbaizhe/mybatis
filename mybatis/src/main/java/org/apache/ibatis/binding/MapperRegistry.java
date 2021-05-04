@@ -57,7 +57,13 @@ public class MapperRegistry {
     return knownMappers.containsKey(type);
   }
 
+  /**
+   *
+   * @param type
+   * @param <T>
+   */
   public <T> void addMapper(Class<T> type) {
+    //TODO 2021/5/5 待看
     if (type.isInterface()) {
       if (hasMapper(type)) {
         throw new BindingException("Type " + type + " is already known to the MapperRegistry.");

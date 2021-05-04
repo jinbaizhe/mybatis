@@ -268,6 +268,10 @@ public class XNode {
     return children;
   }
 
+  /**
+   * 获取子标签的键值对
+   * @return
+   */
   public Properties getChildrenAsProperties() {
     Properties properties = new Properties();
     for (XNode child : getChildren()) {

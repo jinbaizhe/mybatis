@@ -4,7 +4,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.parker.mybatis.mapper.UserMapper">
-    <select id="findById" resultType="com.parker.mybatis.po.User">
-        SELECT * FROM user where id = #{id}
+    <select id="findById" resultType="com.parker.mybatis.po.User" >
+        SELECT * FROM user where id = #{id,jdbcType=BIGINT}
     </select>
 </mapper>

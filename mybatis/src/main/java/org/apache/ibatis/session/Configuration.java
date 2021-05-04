@@ -96,6 +96,7 @@ import org.apache.ibatis.type.TypeHandler;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 
 /**
+ * MyBatis的配置信息类
  * @author Clinton Begin
  */
 public class Configuration {
@@ -136,7 +137,14 @@ public class Configuration {
 
   protected Properties variables = new Properties();
   protected ReflectorFactory reflectorFactory = new DefaultReflectorFactory();
+
+  /**
+   * 默认的对象工厂
+   * 会使用对象工厂来创建结果集对象
+   */
   protected ObjectFactory objectFactory = new DefaultObjectFactory();
+
+
   protected ObjectWrapperFactory objectWrapperFactory = new DefaultObjectWrapperFactory();
 
   protected boolean lazyLoadingEnabled = false;

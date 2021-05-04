@@ -54,7 +54,14 @@ import org.apache.ibatis.session.Configuration;
  */
 public final class TypeHandlerRegistry {
 
+  /**
+   * 将JDBC类型转换成Java类型的
+   */
   private final Map<JdbcType, TypeHandler<?>>  jdbcTypeHandlerMap = new EnumMap<>(JdbcType.class);
+
+  /**
+   *
+   */
   private final Map<Type, Map<JdbcType, TypeHandler<?>>> typeHandlerMap = new ConcurrentHashMap<>();
   private final TypeHandler<Object> unknownTypeHandler;
   private final Map<Class<?>, TypeHandler<?>> allTypeHandlersMap = new HashMap<>();
@@ -190,6 +197,7 @@ public final class TypeHandlerRegistry {
   }
 
   public boolean hasTypeHandler(Class<?> javaType) {
+    //判断是否有对应的类型处理器时，可以不用加上jdbcType的限定条件
     return hasTypeHandler(javaType, null);
   }
 
@@ -229,6 +237,13 @@ public final class TypeHandlerRegistry {
     return getTypeHandler(javaTypeReference.getRawType(), jdbcType);
   }
 
+  /**
+   * Java类型转JDBC类型
+   * @param type
+   * @param jdbcType
+   * @param <T>
+   * @return
+   */
   @SuppressWarnings("unchecked")
   private <T> TypeHandler<T> getTypeHandler(Type type, JdbcType jdbcType) {
     if (ParamMap.class.equals(type)) {
@@ -237,12 +252,15 @@ public final class TypeHandlerRegistry {
     Map<JdbcType, TypeHandler<?>> jdbcHandlerMap = getJdbcHandlerMap(type);
     TypeHandler<?> handler = null;
     if (jdbcHandlerMap != null) {
+      //优先取指定的handler
       handler = jdbcHandlerMap.get(jdbcType);
       if (handler == null) {
+        //这里就取通用的handler
         handler = jdbcHandlerMap.get(null);
       }
       if (handler == null) {
         // #591
+        //如果只有一个handler，就取这唯一一个;如果有多个，就返回null
         handler = pickSoleHandler(jdbcHandlerMap);
       }
     }
@@ -304,6 +322,12 @@ public final class TypeHandlerRegistry {
     }
   }
 
+  /**
+   * 如果只有一个handler，就取这唯一一个
+   * 如果有多个，就返回null
+   * @param jdbcHandlerMap
+   * @return
+   */
   private TypeHandler<?> pickSoleHandler(Map<JdbcType, TypeHandler<?>> jdbcHandlerMap) {
     TypeHandler<?> soleHandler = null;
     for (TypeHandler<?> handler : jdbcHandlerMap.values()) {

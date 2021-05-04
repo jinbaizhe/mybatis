@@ -110,7 +110,7 @@ public class SimpleExecutor extends BaseExecutor {
     Connection connection = getConnection(statementLog);
     //创建PrepareStatement
     stmt = handler.prepare(connection, transaction.getTimeout());
-    //对PrepareStatement进行设置参数
+    //对PrepareStatement设置SQL参数
     handler.parameterize(stmt);
     return stmt;
   }
