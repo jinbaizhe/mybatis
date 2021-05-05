@@ -40,7 +40,7 @@ public class MapperRegistry {
   private final Configuration config;
 
   /**
-   * 保存已经注册了的mapper
+   * 保存已经注册了的mapper接口对应的代理工厂类
    */
   private final Map<Class<?>, MapperProxyFactory<?>> knownMappers = new HashMap<>();
 
@@ -48,6 +48,13 @@ public class MapperRegistry {
     this.config = config;
   }
 
+  /**
+   * 获取mapper
+   * @param type
+   * @param sqlSession
+   * @param <T>
+   * @return
+   */
   @SuppressWarnings("unchecked")
   public <T> T getMapper(Class<T> type, SqlSession sqlSession) {
     final MapperProxyFactory<T> mapperProxyFactory = (MapperProxyFactory<T>) knownMappers.get(type);

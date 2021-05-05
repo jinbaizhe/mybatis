@@ -1,6 +1,7 @@
 package com.parker.mybatis;
 
 import com.alibaba.fastjson.JSON;
+import com.parker.mybatis.mapper.UserMapper;
 import com.parker.mybatis.po.User;
 import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.session.SqlSession;
@@ -22,10 +23,18 @@ public class App {
         SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
         SqlSession sqlSession = sqlSessionFactory.openSession();
         try {
-            User user = sqlSession.selectOne("com.parker.mybatis.mapper.UserMapper.findById", 1);
-            LOGGER.info("user=[{}]", JSON.toJSONString(user));
+            User user1 = sqlSession.selectOne("com.parker.mybatis.mapper.UserMapper.findById", 1);
+            LOGGER.info("user=[{}]", JSON.toJSONString(user1));
+
+            UserMapper userMapper = sqlSession.getMapper(UserMapper.class);
+            User user2 = userMapper.findById(1);
+            LOGGER.info("user=[{}]", JSON.toJSONString(user2));
+
+
         } finally {
             sqlSession.close();
         }
+
+
     }
 }
