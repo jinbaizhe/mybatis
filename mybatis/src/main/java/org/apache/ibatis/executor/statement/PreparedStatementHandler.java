@@ -76,6 +76,12 @@ public class PreparedStatementHandler extends BaseStatementHandler {
     return resultSetHandler.handleCursorResultSets(ps);
   }
 
+  /**
+   * 创建Statement对象
+   * @param connection
+   * @return
+   * @throws SQLException
+   */
   @Override
   protected Statement instantiateStatement(Connection connection) throws SQLException {
     String sql = boundSql.getSql();
@@ -87,6 +93,7 @@ public class PreparedStatementHandler extends BaseStatementHandler {
         return connection.prepareStatement(sql, keyColumnNames);
       }
     } else if (mappedStatement.getResultSetType() == ResultSetType.DEFAULT) {
+      //创建该SQL的Statement
       return connection.prepareStatement(sql);
     } else {
       return connection.prepareStatement(sql, mappedStatement.getResultSetType().getValue(), ResultSet.CONCUR_READ_ONLY);

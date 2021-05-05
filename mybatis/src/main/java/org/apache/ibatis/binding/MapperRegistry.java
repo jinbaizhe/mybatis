@@ -27,13 +27,21 @@ import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.SqlSession;
 
 /**
+ * 注册mapper
  * @author Clinton Begin
  * @author Eduardo Macarron
  * @author Lasse Voss
  */
 public class MapperRegistry {
 
+  /**
+   * 对配置信息对象的引用
+   */
   private final Configuration config;
+
+  /**
+   * 保存已经注册了的mapper
+   */
   private final Map<Class<?>, MapperProxyFactory<?>> knownMappers = new HashMap<>();
 
   public MapperRegistry(Configuration config) {
@@ -63,21 +71,27 @@ public class MapperRegistry {
    * @param <T>
    */
   public <T> void addMapper(Class<T> type) {
-    //TODO 2021/5/5 待看
     if (type.isInterface()) {
+      //该mapper是否已经注册
       if (hasMapper(type)) {
         throw new BindingException("Type " + type + " is already known to the MapperRegistry.");
       }
       boolean loadCompleted = false;
       try {
+        //注册该mapper
         knownMappers.put(type, new MapperProxyFactory<>(type));
+
         // It's important that the type is added before the parser is run
         // otherwise the binding may automatically be attempted by the
         // mapper parser. If the type is already known, it won't try.
+
+        //创建通过注解解析的构建器
         MapperAnnotationBuilder parser = new MapperAnnotationBuilder(config, type);
+        //解析
         parser.parse();
         loadCompleted = true;
       } finally {
+        //如果加载失败，就移除对该mapper的注册
         if (!loadCompleted) {
           knownMappers.remove(type);
         }

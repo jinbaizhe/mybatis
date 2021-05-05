@@ -114,20 +114,36 @@ public class MapperAnnotationBuilder {
 
   public void parse() {
     String resource = type.toString();
+    //判断是否已经加载过
     if (!configuration.isResourceLoaded(resource)) {
+
+      //加载xml配置
       loadXmlResource();
+
+      //标记该mapper已经加载完成
       configuration.addLoadedResource(resource);
+
       assistant.setCurrentNamespace(type.getName());
+
+      //解析mapper接口上有没有使用二级缓存相关的注解（@CacheNamespace）
       parseCache();
+
+      //解析mapper接口上有没有使用二级缓存相关的注解（@CacheNamespaceRef）
       parseCacheRef();
+
       for (Method method : type.getMethods()) {
+        //当前方法不是桥接方法，也不是接口的默认方法
         if (!canHaveStatement(method)) {
           continue;
         }
+
+        //
         if (getAnnotationWrapper(method, false, Select.class, SelectProvider.class).isPresent()
             && method.getAnnotation(ResultMap.class) == null) {
           parseResultMap(method);
         }
+
+        //解析Statement
         try {
           parseStatement(method);
         } catch (IncompleteElementException e) {
@@ -138,6 +154,12 @@ public class MapperAnnotationBuilder {
     parsePendingMethods();
   }
 
+  /**
+   * 当前方法不是桥接方法，也不是接口的默认方法
+   * 桥接方法：https://www.zhihu.com/question/54895701
+   * @param method
+   * @return
+   */
   private boolean canHaveStatement(Method method) {
     // issue #237
     return !method.isBridge() && !method.isDefault();
@@ -181,6 +203,9 @@ public class MapperAnnotationBuilder {
     }
   }
 
+  /**
+   * 解析mapper接口上有没有使用二级缓存相关的注解（@CacheNamespace）
+   */
   private void parseCache() {
     CacheNamespace cacheDomain = type.getAnnotation(CacheNamespace.class);
     if (cacheDomain != null) {
@@ -203,6 +228,9 @@ public class MapperAnnotationBuilder {
     return props;
   }
 
+  /**
+   * 解析mapper接口上有没有使用二级缓存相关的注解（@CacheNamespaceRef）
+   */
   private void parseCacheRef() {
     CacheNamespaceRef cacheDomainRef = type.getAnnotation(CacheNamespaceRef.class);
     if (cacheDomainRef != null) {
@@ -293,6 +321,10 @@ public class MapperAnnotationBuilder {
     return null;
   }
 
+  /**
+   * 解析Statement
+   * @param method
+   */
   void parseStatement(Method method) {
     final Class<?> parameterTypeClass = getParameterType(method);
     final LanguageDriver languageDriver = getLanguageDriver(method);
@@ -395,6 +427,8 @@ public class MapperAnnotationBuilder {
     Class<?> parameterType = null;
     Class<?>[] parameterTypes = method.getParameterTypes();
     for (Class<?> currentParameterType : parameterTypes) {
+
+      //父类.class.isAssignableFrom(子类.class)
       if (!RowBounds.class.isAssignableFrom(currentParameterType) && !ResultHandler.class.isAssignableFrom(currentParameterType)) {
         if (parameterType == null) {
           parameterType = currentParameterType;

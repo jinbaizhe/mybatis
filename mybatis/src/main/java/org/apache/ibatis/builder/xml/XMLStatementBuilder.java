@@ -54,6 +54,7 @@ public class XMLStatementBuilder extends BaseBuilder {
   }
 
   public void parseStatementNode() {
+    //select标签里的id字段对应的值，也就是mapper接口对应的方法名
     String id = context.getStringAttribute("id");
     String databaseId = context.getStringAttribute("databaseId");
 
@@ -61,8 +62,13 @@ public class XMLStatementBuilder extends BaseBuilder {
       return;
     }
 
+    //标签名，如select
     String nodeName = context.getNode().getNodeName();
+
+    //sql类型的枚举值
     SqlCommandType sqlCommandType = SqlCommandType.valueOf(nodeName.toUpperCase(Locale.ENGLISH));
+
+    //读取配置字段信息
     boolean isSelect = sqlCommandType == SqlCommandType.SELECT;
     boolean flushCache = context.getBooleanAttribute("flushCache", !isSelect);
     boolean useCache = context.getBooleanAttribute("useCache", isSelect);
@@ -93,7 +99,9 @@ public class XMLStatementBuilder extends BaseBuilder {
           ? Jdbc3KeyGenerator.INSTANCE : NoKeyGenerator.INSTANCE;
     }
 
+    //解析真正的SQL语句
     SqlSource sqlSource = langDriver.createSqlSource(configuration, context, parameterTypeClass);
+
     StatementType statementType = StatementType.valueOf(context.getStringAttribute("statementType", StatementType.PREPARED.toString()));
     Integer fetchSize = context.getIntAttribute("fetchSize");
     Integer timeout = context.getIntAttribute("timeout");
@@ -110,6 +118,7 @@ public class XMLStatementBuilder extends BaseBuilder {
     String keyColumn = context.getStringAttribute("keyColumn");
     String resultSets = context.getStringAttribute("resultSets");
 
+    //创建MappedStatement
     builderAssistant.addMappedStatement(id, sqlSource, statementType, sqlCommandType,
         fetchSize, timeout, parameterMap, parameterTypeClass, resultMap, resultTypeClass,
         resultSetTypeEnum, flushCache, useCache, resultOrdered,

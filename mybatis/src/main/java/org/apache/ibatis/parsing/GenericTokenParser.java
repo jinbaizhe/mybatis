@@ -16,6 +16,11 @@
 package org.apache.ibatis.parsing;
 
 /**
+ * 通用标记处理器
+ * 这里的通用标记解析器处理的是SQL脚本中#{parameter}、${parameter}参数，
+ * 根据给定TokenHandler（标记处理器）来进行处理，TokenHandler是标记真正的处理器，
+ * 而当前这个解析器只是处理器处理的前提工序——解析，本类重在解析，而非处理，
+ * 具体的处理会调用具体的TokenHandler的handleToken()方法来完成。
  * @author Clinton Begin
  */
 public class GenericTokenParser {

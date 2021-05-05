@@ -507,6 +507,7 @@ public class XMLConfigBuilder extends BaseBuilder {
    */
   private void mapperElement(XNode parent) throws Exception {
     if (parent != null) {
+      //遍历每个mapper配置
       for (XNode child : parent.getChildren()) {
         if ("package".equals(child.getName())) {
           String mapperPackage = child.getStringAttribute("name");
@@ -524,6 +525,7 @@ public class XMLConfigBuilder extends BaseBuilder {
 
               //读取配置信息，封装到XMLMapperBuilder中
               XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration, resource, configuration.getSqlFragments());
+
               //创建并注册mapper
               mapperParser.parse();
             }

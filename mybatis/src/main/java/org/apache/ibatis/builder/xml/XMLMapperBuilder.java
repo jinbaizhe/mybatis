@@ -94,8 +94,11 @@ public class XMLMapperBuilder extends BaseBuilder {
    * 创建并注册mapper
    */
   public void parse() {
+    //判断是否已经加载过
     if (!configuration.isResourceLoaded(resource)) {
+      //解析配置，并创建、注册mapper
       configurationElement(parser.evalNode("/mapper"));
+      //标记该mapper已加载
       configuration.addLoadedResource(resource);
       bindMapperForNamespace();
     }
@@ -109,18 +112,33 @@ public class XMLMapperBuilder extends BaseBuilder {
     return sqlFragments.get(refid);
   }
 
+  /**
+   * 解析配置，并创建、注册mapper
+   * @param context
+   */
   private void configurationElement(XNode context) {
     try {
+      //命名空间
       String namespace = context.getStringAttribute("namespace");
       if (namespace == null || namespace.isEmpty()) {
         throw new BuilderException("Mapper's namespace cannot be empty");
       }
       builderAssistant.setCurrentNamespace(namespace);
+
+      //二级缓存配置
       cacheRefElement(context.evalNode("cache-ref"));
       cacheElement(context.evalNode("cache"));
+
+      //解析parameterMap
       parameterMapElement(context.evalNodes("/mapper/parameterMap"));
+
+      //解析resultMap
       resultMapElements(context.evalNodes("/mapper/resultMap"));
+
+      //解析sql标签
       sqlElement(context.evalNodes("/mapper/sql"));
+
+      //解析真正的sql语句并且创建、注册MappedStatement
       buildStatementFromContext(context.evalNodes("select|insert|update|delete"));
     } catch (Exception e) {
       throw new BuilderException("Error parsing Mapper XML. The XML location is '" + resource + "'. Cause: " + e, e);
@@ -432,11 +450,17 @@ public class XMLMapperBuilder extends BaseBuilder {
       } catch (ClassNotFoundException e) {
         // ignore, bound type is not required
       }
+
+      //根据命名空间，再次判断是否已加载该mapper（有可能是通过注解形式已加载过了的）
       if (boundType != null && !configuration.hasMapper(boundType)) {
         // Spring may not know the real resource name so we set a flag
         // to prevent loading again this resource from the mapper interface
         // look at MapperAnnotationBuilder#loadXmlResource
+
+        //标记该命名空间已经加载完成
         configuration.addLoadedResource("namespace:" + namespace);
+
+        //添加该mapper
         configuration.addMapper(boundType);
       }
     }

@@ -80,6 +80,7 @@ public class XMLScriptBuilder extends BaseBuilder {
     for (int i = 0; i < children.getLength(); i++) {
       XNode child = node.newXNode(children.item(i));
       if (child.getNode().getNodeType() == Node.CDATA_SECTION_NODE || child.getNode().getNodeType() == Node.TEXT_NODE) {
+        //获取内容，没有的话就取默认值空字符串""
         String data = child.getStringBody("");
         TextSqlNode textSqlNode = new TextSqlNode(data);
         if (textSqlNode.isDynamic()) {

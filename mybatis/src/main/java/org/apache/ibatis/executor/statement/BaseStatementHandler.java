@@ -80,13 +80,25 @@ public abstract class BaseStatementHandler implements StatementHandler {
     return parameterHandler;
   }
 
+  /**
+   * 创建创建Statement
+   * @param connection
+   * @param transactionTimeout
+   * @return
+   * @throws SQLException
+   */
   @Override
   public Statement prepare(Connection connection, Integer transactionTimeout) throws SQLException {
     ErrorContext.instance().sql(boundSql.getSql());
     Statement statement = null;
     try {
+      //创建Statement
       statement = instantiateStatement(connection);
+
+      //设置超时时间
       setStatementTimeout(statement, transactionTimeout);
+
+      //设置每次读取多少数据到ResultSet中
       setFetchSize(statement);
       return statement;
     } catch (SQLException e) {
@@ -98,6 +110,12 @@ public abstract class BaseStatementHandler implements StatementHandler {
     }
   }
 
+  /**
+   * 创建Statement对象
+   * @param connection
+   * @return
+   * @throws SQLException
+   */
   protected abstract Statement instantiateStatement(Connection connection) throws SQLException;
 
   protected void setStatementTimeout(Statement stmt, Integer transactionTimeout) throws SQLException {
@@ -113,12 +131,23 @@ public abstract class BaseStatementHandler implements StatementHandler {
     StatementUtil.applyTransactionTimeout(stmt, queryTimeout, transactionTimeout);
   }
 
+  /**
+   * 设置每次读取多少数据到ResultSet中
+   * setFetchSize的意思是当调用rs.next时，ResultSet会一次性从服务器上取得多少行数据回来。
+   * 这样在下次rs.next时，它可以直接从内存中获取出数据而不需要网络交互，提高了效率。
+   * 这个设置可能会被某些JDBC驱动忽略的，而且设置过大也会造成内存的上升。
+   * @param stmt
+   * @throws SQLException
+   */
   protected void setFetchSize(Statement stmt) throws SQLException {
+    //获取指定配置的大小
     Integer fetchSize = mappedStatement.getFetchSize();
     if (fetchSize != null) {
       stmt.setFetchSize(fetchSize);
       return;
     }
+
+    //获取默认配置的大小
     Integer defaultFetchSize = configuration.getDefaultFetchSize();
     if (defaultFetchSize != null) {
       stmt.setFetchSize(defaultFetchSize);

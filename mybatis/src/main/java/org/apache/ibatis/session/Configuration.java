@@ -171,9 +171,14 @@ public class Configuration {
   protected final TypeAliasRegistry typeAliasRegistry = new TypeAliasRegistry();
   protected final LanguageDriverRegistry languageRegistry = new LanguageDriverRegistry();
 
+  /**
+   * 保存MappedStatement
+   */
   protected final Map<String, MappedStatement> mappedStatements = new StrictMap<MappedStatement>("Mapped Statements collection")
       .conflictMessageProducer((savedValue, targetValue) ->
           ". please check " + savedValue.getResource() + " and " + targetValue.getResource());
+
+
   protected final Map<String, Cache> caches = new StrictMap<>("Caches collection");
   protected final Map<String, ResultMap> resultMaps = new StrictMap<>("Result Maps collection");
   protected final Map<String, ParameterMap> parameterMaps = new StrictMap<>("Parameter Maps collection");
@@ -673,8 +678,21 @@ public class Configuration {
     return resultSetHandler;
   }
 
+  /**
+   * 创建一个新的Statement处理器
+   * @param executor
+   * @param mappedStatement
+   * @param parameterObject
+   * @param rowBounds
+   * @param resultHandler
+   * @param boundSql
+   * @return
+   */
   public StatementHandler newStatementHandler(Executor executor, MappedStatement mappedStatement, Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql) {
+    //创建StatementHandler对象
     StatementHandler statementHandler = new RoutingStatementHandler(executor, mappedStatement, parameterObject, rowBounds, resultHandler, boundSql);
+
+    //使用插件（拦截器）
     statementHandler = (StatementHandler) interceptorChain.pluginAll(statementHandler);
     return statementHandler;
   }
@@ -864,6 +882,11 @@ public class Configuration {
     mapperRegistry.addMappers(packageName);
   }
 
+  /**
+   * 加载mapper
+   * @param type
+   * @param <T>
+   */
   public <T> void addMapper(Class<T> type) {
     mapperRegistry.addMapper(type);
   }
