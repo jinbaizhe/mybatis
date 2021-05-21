@@ -22,7 +22,7 @@ public class App {
     public static void main(String[] args) {
 
         //原生方式运行MyBatis
-        rawWay();
+//        rawWay();
 
         //以spring方式运行MyBatis
         springWay();
