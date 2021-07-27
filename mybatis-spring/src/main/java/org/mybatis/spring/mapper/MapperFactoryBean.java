@@ -67,6 +67,8 @@ public class MapperFactoryBean<T> extends SqlSessionDaoSupport implements Factor
 
   /**
    * {@inheritDoc}
+   * 继承自DaoSupport类，实现了InitializingBean接口，
+   * bean初始化时在afterPropertiesSet方法中会调用重写后的checkDaoConfig方法
    */
   @Override
   protected void checkDaoConfig() {
@@ -75,6 +77,8 @@ public class MapperFactoryBean<T> extends SqlSessionDaoSupport implements Factor
     notNull(this.mapperInterface, "Property 'mapperInterface' is required");
 
     Configuration configuration = getSqlSession().getConfiguration();
+
+    //加载mapper信息到configuration中
     if (this.addToConfig && !configuration.hasMapper(this.mapperInterface)) {
       try {
         configuration.addMapper(this.mapperInterface);
@@ -89,6 +93,8 @@ public class MapperFactoryBean<T> extends SqlSessionDaoSupport implements Factor
 
   /**
    * {@inheritDoc}
+   * 获取真正的mapper类，
+   * 在调用spring的getBean()时会调用该方法
    */
   @Override
   public T getObject() throws Exception {

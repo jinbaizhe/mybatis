@@ -224,6 +224,8 @@ public class MapperScannerConfigurer
    * Specifies which {@code SqlSessionFactory} to use in the case that there is more than one in the spring context.
    * Usually this is only needed when you have more than one datasource.
    * <p>
+   *  适用于多数据源的情况下，指定sqlSessionFactory的引用
+   *  该方法已废弃，被setSqlSessionFactoryBeanName方法取代了
    *
    * @deprecated Use {@link #setSqlSessionFactoryBeanName(String)} instead.
    *
@@ -241,6 +243,7 @@ public class MapperScannerConfigurer
    * <p>
    * Note bean names are used, not bean references. This is because the scanner loads early during the start process and
    * it is too early to build mybatis object instances.
+   * 适用于多数据源的情况下，指定sqlSessionFactory的name
    *
    * @since 1.1.0
    *
@@ -350,6 +353,7 @@ public class MapperScannerConfigurer
    */
   @Override
   public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) {
+    //读取配置信息
     if (this.processPropertyPlaceHolders) {
       processPropertyPlaceHolders();
     }
@@ -372,6 +376,8 @@ public class MapperScannerConfigurer
       scanner.setDefaultScope(defaultScope);
     }
     scanner.registerFilters();
+
+    //通过ClassPathMapperScanner去扫描、注册mapper类的BeanDefinition到Spring容器中
     scanner.scan(
         StringUtils.tokenizeToStringArray(this.basePackage, ConfigurableApplicationContext.CONFIG_LOCATION_DELIMITERS));
   }

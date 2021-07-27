@@ -44,6 +44,8 @@ public abstract class SqlSessionDaoSupport extends DaoSupport {
    * Set MyBatis SqlSessionFactory to be used by this DAO. Will automatically create SqlSessionTemplate for the given
    * SqlSessionFactory.
    *
+   * 这个方法会被Spring调用，从而注入依赖
+   * ClassPathMapperScanner类里，对BeanDefinition的autowireMode属性，设置成了AbstractBeanDefinition.AUTOWIRE_BY_TYPE
    * @param sqlSessionFactory
    *          a factory of SqlSession
    */

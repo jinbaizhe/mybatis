@@ -73,7 +73,7 @@ public class MapperRegistry {
   }
 
   /**
-   *
+   * 加载mapper
    * @param type
    * @param <T>
    */
@@ -92,7 +92,7 @@ public class MapperRegistry {
         // otherwise the binding may automatically be attempted by the
         // mapper parser. If the type is already known, it won't try.
 
-        //创建通过注解解析的构建器
+        //创建通过注解解析的构建器(里面也有对xml配置的解析)
         MapperAnnotationBuilder parser = new MapperAnnotationBuilder(config, type);
         //解析
         parser.parse();

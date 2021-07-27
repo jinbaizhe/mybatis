@@ -37,6 +37,9 @@ public class App {
         UserMapper userMapper = (UserMapper)context.getBean("userMapper");
         User user2 = userMapper.findById(1);
         LOGGER.info("以spring方式运行MyBatis:user=[{}]", JSON.toJSONString(user2));
+
+        userMapper = (UserMapper)context.getBean("userMapper");
+
     }
 
     /**

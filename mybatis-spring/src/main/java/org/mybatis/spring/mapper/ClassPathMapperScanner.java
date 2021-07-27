@@ -201,8 +201,10 @@ public class ClassPathMapperScanner extends ClassPathBeanDefinitionScanner {
    */
   @Override
   public Set<BeanDefinitionHolder> doScan(String... basePackages) {
+    //通过spring的方式扫描路径获得beanDefinition
     Set<BeanDefinitionHolder> beanDefinitions = super.doScan(basePackages);
 
+    //对获得的beanDefinition做后续的处理
     if (beanDefinitions.isEmpty()) {
       LOGGER.warn(() -> "No MyBatis mapper was found in '" + Arrays.toString(basePackages)
           + "' package. Please check your configuration.");
@@ -213,6 +215,10 @@ public class ClassPathMapperScanner extends ClassPathBeanDefinitionScanner {
     return beanDefinitions;
   }
 
+  /**
+   * 对beanDefinition做处理
+   * @param beanDefinitions
+   */
   private void processBeanDefinitions(Set<BeanDefinitionHolder> beanDefinitions) {
     AbstractBeanDefinition definition;
     BeanDefinitionRegistry registry = getRegistry();
@@ -232,15 +238,20 @@ public class ClassPathMapperScanner extends ClassPathBeanDefinitionScanner {
 
       // the mapper interface is the original class of the bean
       // but, the actual class of the bean is MapperFactoryBean
+      //实际BeanDefinition注册的类是MapperFactoryBean，真正的mapper类作为构造入参
       definition.getConstructorArgumentValues().addGenericArgumentValue(beanClassName); // issue #59
       definition.setBeanClass(this.mapperFactoryBeanClass);
 
+      //设置属性addToConfig
       definition.getPropertyValues().add("addToConfig", this.addToConfig);
 
       // Attribute for MockitoPostProcessor
       // https://github.com/mybatis/spring-boot-starter/issues/475
       definition.setAttribute(FACTORY_BEAN_OBJECT_TYPE, beanClassName);
 
+
+      //设置属性sqlSessionFactory
+      //优先取配置信息里指定的sqlSessionFactory
       boolean explicitFactoryUsed = false;
       if (StringUtils.hasText(this.sqlSessionFactoryBeanName)) {
         definition.getPropertyValues().add("sqlSessionFactory",
@@ -268,6 +279,18 @@ public class ClassPathMapperScanner extends ClassPathBeanDefinitionScanner {
         explicitFactoryUsed = true;
       }
 
+      /**
+       * AutowireMode(自动装配模型):在spring中有四种模式分别是: 
+       *
+       * 1 autowire_no(AbstractBeanDefinition)： 默认装配模式，目前非xml配置都是使用这种方式，然后使用注解@Autowired/@Resource手动注入。
+       *
+       * 2 autowire_name: 通过set方法，并且set方法的名称需要和bean的name一致。
+       *
+       * 3 autowire_type: 通过set方法,并且再根据bean的类型，注入属性，是通过类型配置。
+       *
+       * 4 autowire_construcor: 通过构造器注入。
+       */
+      //如果在配置信息里没有指定，就通过Spring的类型注入方式（AUTOWIRE_BY_TYPE）
       if (!explicitFactoryUsed) {
         LOGGER.debug(() -> "Enabling autowire by type for MapperFactoryBean with name '" + holder.getBeanName() + "'.");
         definition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_TYPE);

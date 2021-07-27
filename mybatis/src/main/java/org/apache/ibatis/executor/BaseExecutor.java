@@ -352,6 +352,10 @@ public abstract class BaseExecutor implements Executor {
   protected abstract <E> Cursor<E> doQueryCursor(MappedStatement ms, Object parameter, RowBounds rowBounds, BoundSql boundSql)
       throws SQLException;
 
+  /**
+   * 关闭Statement
+   * @param statement
+   */
   protected void closeStatement(Statement statement) {
     if (statement != null) {
       try {
